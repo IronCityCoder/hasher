@@ -44,11 +44,12 @@ def processDirectories(directory) :
 	path = pathlib.Path(directory)
 	files = path.rglob("*")
 	for file in files:
-		result = hashFile(str(file), file)
-		if result:
-			ProcessCount += 1
-		else:
-			ErrorCount += 1
+		if file.is_file():
+			result = hashFile(str(file), file)
+			if result:
+				ProcessCount += 1
+			else:
+				ErrorCount += 1
 
 #Grab the information for each file in a directory.			
 def hashFile(filePath, pathObj) :
