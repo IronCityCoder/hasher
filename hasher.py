@@ -3,7 +3,7 @@
 import os
 import hashlib
 from sys import argv
-import datetime
+from datetime import datetime as dt
 import pdb
 import pathlib
 
@@ -43,13 +43,15 @@ def processDirectories(directory) :
 	ErrorCount = 0
 	path = pathlib.Path(directory)
 	files = path.rglob("*")
-	for file in files:
-		if file.is_file():
-			result = hashFile(str(file), file)
-			if result:
-				ProcessCount += 1
-			else:
-				ErrorCount += 1
+	date = "{}-{}-{}".format(dt.today().month, dt.today().day, dt.today().year)
+	with open("HasherScan{}.csv".format(date), "w+") as output:
+		for file in files:
+			if file.is_file():
+				result = hashFile(str(file), file)
+				form = 'Filename: {FileName},Filetype: {FileType}, Filepath: {FilePath}, Hashtype: {hashType} - {hexMD5}, SHAtype: {SHAtype} - {hexSHA}, size: {size}\n'.format(**result).replace('    ','')		
+				output.write(form)
+			
+
 
 #Grab the information for each file in a directory.			
 def hashFile(filePath, pathObj) :
@@ -80,24 +82,12 @@ def hashFile(filePath, pathObj) :
 			'FilePath': filePath,
 			'FileType': ftype
 		}
-								
-		# print the results
-		#pdb.set_trace()                                                   
-		print ('Filename: {FileName}, \n\
-		Filetype: {FileType}, \n\
-		Filepath: {FilePath}, \n\
-		Hashtype: {hashType}, {hexMD5} \n\
-		SHAtype: {SHAtype}, {hexSHA} \n\
-		size: {size} \n\
-		----------'.format(**hHFile).replace('    ','') )
-								
-		#Returning True since any error catches return false to iterate ErrorCount.
-		return True  
-		
+		#pdb.set_trace()  
+		return hHFile					
+                                                 
 	except IOError:
 		#An exception occured when processing the file
 		print (pathObj.name + ' File Processing Error')
-		return False
 				
 if __name__ == '__main__' :
 	#Grab our arguments. 
