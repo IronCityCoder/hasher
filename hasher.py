@@ -70,7 +70,6 @@ def scanDir(directory, output, filetype='all', hashtype='all') :
 		
 #where to handle hash logic 
 def runThrough(filePath, pathObj, filetype, md5, sha, ofile):
-	
 	#Grab the information for each file in a directory.	
 	theFileStats = os.stat(filePath)
 	(mode, ino, dev, nlink, uid, gid, size, altime, mtime, ctime,) = os.stat(filePath)
@@ -86,14 +85,12 @@ def runThrough(filePath, pathObj, filetype, md5, sha, ofile):
 		'FileType': filetype
 	}
 
-	form = 'Filename: {FileName},Filetype: {FileType},\
+	ofile.write('Filename: {FileName},Filetype: {FileType},\
 	Filepath: {FilePath}, Hashtype: {hashType} - {hexMD5},\
-	SHAtype: {SHAtype} - {hexSHA}, size: {size}\n'.format(**hHFile).replace('    ','')		
-	ofile.write(form)
-                         
+	SHAtype: {SHAtype} - {hexSHA}, size: {size}\n'.format(**hHFile).replace('    ',''))
 
-def readFile(filePath, fileType = 'all' hashType = 'all')
-	with open(filePath, "rb") as fp:
+def readOption(filePath, fileType = "all", hashType = "all"):
+	with open(filePath, "r") as fp:
 		#All our store is stored as csv anyways so separate on commas
 		for line in fp:
 			newLine = line.split(",")
@@ -111,8 +108,8 @@ def readFile(filePath, fileType = 'all' hashType = 'all')
 					
 def printer(linearr):
 	for i in linearr:
-		print(i)
-		print("-" * 10)
+		print(i.replace(' ', ''))
+	print("-" * 10)
 
 #We will likely need some error messages during testing.		
 def callError():
@@ -136,7 +133,7 @@ if __name__ == "__main__":
 	#Because r and o are in a group, they have to pick one.
 	if args.r:
 		print("READING")
-		readFile(path, args.type, args.hash)
+		readOption(path, args.type, args.hash)
 	#Scan
 	elif args.o:
 		print("SCANNING")
