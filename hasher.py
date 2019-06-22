@@ -52,31 +52,24 @@ def scanDir(directory, output, filetype='all', hashtype='all') :
 				hexMD5 = hash.hexdigest().upper()
 				hexSHA = hash256.hexdigest ().upper()
 				#If a filetype is entered we check it.
+				run = False
 				if filetype != 'all' and hashtype != 'all':
-					if filetype not in ftype:
-						pass
-					elif hashtype != hexMD5 or hashtypr != hexSHA:
-						pass
-
-					else:
-						runthrough(str(file), file, filetype, hashtype)
+					if filetype in ftype and hashtype == hexMD5 or hashtype == hexSHA:
+						run = True
+						
 				elif hashtype != 'all':
-					if hashtype != hexMD5 or hashtypr != hexSHA:
-						pass
-					else: 
-						runthrough(str(file), file, filetype, hashtype)
+					if hashtype == hexMD5 or hashtype == hexSHA:
+						run = True
+
 				elif filetype != 'all':
-					if filetype not in ftype:
-						pass
-					else:
-						runthrough(str(file), file, filetype, hashtype)
-				else:
-					runThrough(str(file), file, ftype, hexMD5, hexSHA)
+					if filetype in ftype:
+						run = True		
+
+				if run:
+					runThrough(str(file), file, ftype, hexMD5, hexSHA, ofile)
 		
-		form = 'Filename: {FileName},Filetype: {FileType}, Filepath: {FilePath}, Hashtype: {hashType} - {hexMD5}, SHAtype: {SHAtype} - {hexSHA}, size: {size}\n'.format(**result).replace('    ','')		
-		ofile.write(form)	
 #where to handle hash logic 
-def runThrough(filePath, pathObj, filetype, md5, sha):
+def runThrough(filePath, pathObj, filetype, md5, sha, ofile):
 	
 	#Grab the information for each file in a directory.	
 	theFileStats = os.stat(filePath)
@@ -93,8 +86,10 @@ def runThrough(filePath, pathObj, filetype, md5, sha):
 		'FileType': filetype
 	}
 
-
-	#pdb.set_trace()  
+	form = 'Filename: {FileName},Filetype: {FileType},\
+	Filepath: {FilePath}, Hashtype: {hashType} - {hexMD5},\
+	SHAtype: {SHAtype} - {hexSHA}, size: {size}\n'.format(**hHFile).replace('    ','')		
+	ofile.write(form)
                          
 
 if __name__ == "__main__":
