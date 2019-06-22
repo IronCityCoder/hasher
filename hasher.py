@@ -42,9 +42,9 @@ def scanDir(directory, output, filetype='all', hashtype='all') :
 		for file in files:
 			if file.is_file():
 				#Check file type and hashes.
-				ftype = m.from_file(filePath)
-				with open(filePath, 'rb') as fp:
-					fdata = fp.read()
+				ftype = m.from_file(str(file))
+				with open(str(file), 'rb') as fp:
+					fData = fp.read()
 				hash = hashlib.md5 ()
 				hash256 = hashlib.sha256 ()
 				hash.update(fData)
@@ -52,7 +52,7 @@ def scanDir(directory, output, filetype='all', hashtype='all') :
 				hexMD5 = hash.hexdigest().upper()
 				hexSHA = hash256.hexdigest ().upper()
 				#If a filetype is entered we check it.
-				run = False
+				run = True
 				if filetype != 'all' and hashtype != 'all':
 					if filetype in ftype and hashtype == hexMD5 or hashtype == hexSHA:
 						run = True
@@ -85,25 +85,25 @@ def runThrough(filePath, pathObj, filetype, md5, sha, ofile):
 		'FileType': filetype
 	}
 
-	ofile.write('Filename: {FileName},Filetype: {FileType},\
-	Filepath: {FilePath}, Hashtype: {hashType} - {hexMD5},\
-	SHAtype: {SHAtype} - {hexSHA}, size: {size}\n'.format(**hHFile).replace('    ',''))
+	ofile.write('Filename: {FileName},Filetype: {FileType}, Filepath: {FilePath}, Hashtype: {hashType} - {hexMD5}, SHAtype: {SHAtype} - {hexSHA}, size: {size}'.format(**hHFile).replace('    ',''))
 
 def readOption(filePath, fileType = "all", hashType = "all"):
 	with open(filePath, "r") as fp:
 		#All our store is stored as csv anyways so separate on commas
 		for line in fp:
 			newLine = line.split(",")
+			#Unlike in the scanning portion, we are working with a list now.
+			#So we have to compare the indexes of a list with our filters.
 			if fileType == 'all' and hashType == 'all':
 				printer(newLine)
 			elif fileType != 'all' and hashType != 'all':
-				if fileType in newLine and hashType in newLine:
+				if fileType in newLine[1] and hashType in newLine[3] or hashType in newLine[4]:
 					printer(newLine)
 			elif fileType != 'all':
-				if fileType in newLine:
+				if fileType in newLine[1]:
 					printer(newLine)
 			elif hashType != 'all':
-				if hashType in newLine:
+				if hashType in newLine[3] or hashType in newLine[4]:
 					printer(newLine)
 					
 def printer(linearr):
@@ -133,8 +133,8 @@ if __name__ == "__main__":
 	#Because r and o are in a group, they have to pick one.
 	if args.r:
 		print("READING")
-		readOption(path, args.type, args.hash)
+		readOption(path, args.type, str(args.hash))
 	#Scan
 	elif args.o:
 		print("SCANNING")
-		scanDir(path, args.o, args.type, args.hash)
+		scanDir(path, args.o, args.type, str(args.hash))
