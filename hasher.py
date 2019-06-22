@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # import all needed modules
+import argparse
 import os
 import hashlib
 from sys import argv
@@ -7,7 +8,7 @@ from datetime import datetime as dt
 import pdb
 import pathlib
 
-# in case the computer does not have magic installed
+# In case the computer does not have magic installed
 try:
 		import magic 
 
@@ -23,19 +24,11 @@ hasher.py is a python script used for mobile device acquisition triage.
 It lists all files with their simple name, size, sha256 and md5 hashes.
 It also lists the file path and file type for applicable files.
 
-Usage: ./hasher.py [Directory]
+arg.py path [-h] [-r] [-o {csv,txt}] [--type TYPE] [--hash HASH] 
 
-Examples:
-./hasher.py directory
-./hasher.py "directory"
-./hasher.py directory/subdirectory 
-
-Dependencies: 
-pip install python-magic
 '''
-
 #This function walks through the given directory.
-def processDirectories(directory) :
+def scanDir(directory, output, filetype='all', hashtype='all') :
 	global ProcessCount
 	global ErrorCount
 
@@ -44,54 +37,107 @@ def processDirectories(directory) :
 	path = pathlib.Path(directory)
 	files = path.rglob("*")
 	date = "{}-{}-{}".format(dt.today().month, dt.today().day, dt.today().year)
-	with open("HasherScan{}.csv".format(date), "w+") as output:
+	m = magic.Magic(mime=True)
+	with open("HasherScan{}.{}".format(date, output), "w+") as ofile:
 		for file in files:
 			if file.is_file():
-				result = hashFile(str(file), file)
-				form = 'Filename: {FileName},Filetype: {FileType}, Filepath: {FilePath}, Hashtype: {hashType} - {hexMD5}, SHAtype: {SHAtype} - {hexSHA}, size: {size}\n'.format(**result).replace('    ','')		
-				output.write(form)
-			
+				#Check file type and hashes.
+				ftype = m.from_file(filePath)
+				with open(filePath, 'rb') as fp:
+					fdata = fp.read()
+				hash = hashlib.md5 ()
+				hash256 = hashlib.sha256 ()
+				hash.update(fData)
+				hash256.update(fData)
+				hexMD5 = hash.hexdigest().upper()
+				hexSHA = hash256.hexdigest ().upper()
+				#If a filetype is entered we check it.
+				if filetype != 'all' and hashtype != 'all':
+					if filetype not in ftype:
+						pass
+					elif hashtype != hexMD5 or hashtypr != hexSHA:
+						pass
+
+					else:
+						runthrough(str(file), file, filetype, hashtype)
+				elif hashtype != 'all':
+					if hashtype != hexMD5 or hashtypr != hexSHA:
+						pass
+					else: 
+						runthrough(str(file), file, filetype, hashtype)
+				elif filetype != 'all':
+					if filetype not in ftype:
+						pass
+					else:
+						runthrough(str(file), file, filetype, hashtype)
+				else:
+					runThrough(str(file), file, ftype, hexMD5, hexSHA)
+		
+		form = 'Filename: {FileName},Filetype: {FileType}, Filepath: {FilePath}, Hashtype: {hashType} - {hexMD5}, SHAtype: {SHAtype} - {hexSHA}, size: {size}\n'.format(**result).replace('    ','')		
+		ofile.write(form)	
+#where to handle hash logic 
+def runThrough(filePath, pathObj, filetype, md5, sha):
+	
+	#Grab the information for each file in a directory.	
+	theFileStats = os.stat(filePath)
+	(mode, ino, dev, nlink, uid, gid, size, altime, mtime, ctime,) = os.stat(filePath)
+						
+	hHFile = {
+		'hashType': 'MD5',
+		'SHAtype': 'SHA256',
+		'hexMD5': md5,
+		'hexSHA': sha,
+		'size': size,
+		'FileName': pathObj.name,
+		'FilePath': filePath,
+		'FileType': filetype
+	}
 
 
-#Grab the information for each file in a directory.			
-def hashFile(filePath, pathObj) :
-	#Any errors will be processed in the exception clause  
-	try:
-		fp = open(filePath , 'rb')
-		fData = fp.read()
-		fp.close()
-								
-		theFileStats = os.stat(filePath)
-		(mode, ino, dev, nlink, uid, gid, size, altime, mtime, ctime,) = os.stat(filePath)
-		hash = hashlib.md5 ()
-		hash256 = hashlib.sha256 ()
-		hash.update(fData)
-		hash256.update(fData)
-							
-		#Trying the magic library for cross-platform support
-		m = magic.Magic(mime=True)
-		ftype = m.from_file(filePath)
+	#pdb.set_trace()  
+                         
 
-		hHFile = {
-			'hashType': 'MD5',
-			'SHAtype': 'SHA256',
-			'hexMD5': hash.hexdigest().upper(),
-			'hexSHA': hash256.hexdigest ().upper(),
-			'size': size,
-			'FileName': pathObj.name,
-			'FilePath': filePath,
-			'FileType': ftype
-		}
-		#pdb.set_trace()  
-		return hHFile					
-                                                 
-	except IOError:
-		#An exception occured when processing the file
-		print (pathObj.name + ' File Processing Error')
-				
-if __name__ == '__main__' :
-	#Grab our arguments. 
-	#Script is the name of our script
-	#Directory is the name of the directory to start traversal.
-	script, directory = argv
-	processDirectories(directory)
+if __name__ == "__main__":
+	parser = argparse.ArgumentParser(description='Hasher 2.0 is a file stat program for mobile devices.')
+	group = parser.add_mutually_exclusive_group(required=True)
+	parser.add_argument('path', help="Path: The path files will be read or scanned from.")
+	group.add_argument('-r', action= "store_true", help="Read: Instead of scanning a folder it will read a folder.")
+	group.add_argument('-o', choices=["csv", "txt"], help="Output: Determines the type of output of the scan.")
+	parser.add_argument('--type', help="Type: Will only scan files of a certain type.")
+	parser.add_argument('--hash', help="Hash: Takes in a file that stores a list of hashes and scans matching files.")
+	#https://github.com/mac4n6/APOLLO/blob/master/apollo.py
+	#https://docs.python.org/3/library/argparse.html#argparse.ArgumentParser.add_argument
+	args = parser.parse_args()
+
+	global path
+	global filetype
+	global hashing
+
+	path = args.path
+	filetype = args.type
+	hashing = args.hash
+
+	#Read
+	if args.r:
+		#New function
+		#read()
+		print("READING")
+	#Scan
+	elif args.o:
+		#Our existing code.
+		print("SCANNING")
+		scanDir(path, args.o, args.type, args.hash)
+		#scan()
+	#Error
+	else:
+		#New function for printing help out.
+		#callError()
+		print("ERROR!")
+
+
+	#Develop logic flow for what paths we take. 
+	#Two main operations will be read or write, so we can set variables for that. 
+	#If -o then we scan path.
+	#If -r then we open path as rb and print output 
+	#Type and hash will be used by both logic paths for filtering. 
+	#Should be able to have one function for them.
