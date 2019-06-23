@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # import all needed modules
+import argparse
 import os
 import hashlib
 from sys import argv
@@ -7,7 +8,7 @@ from datetime import datetime as dt
 import pdb
 import pathlib
 
-# in case the computer does not have magic installed
+# In case the computer does not have magic installed
 try:
 		import magic 
 
@@ -23,19 +24,11 @@ hasher.py is a python script used for mobile device acquisition triage.
 It lists all files with their simple name, size, sha256 and md5 hashes.
 It also lists the file path and file type for applicable files.
 
-Usage: ./hasher.py [Directory]
+arg.py path [-h] [-r] [-o {csv,txt}] [--type TYPE] [--hash HASH] 
 
-Examples:
-./hasher.py directory
-./hasher.py "directory"
-./hasher.py directory/subdirectory 
-
-Dependencies: 
-pip install python-magic
 '''
-
 #This function walks through the given directory.
-def processDirectories(directory) :
+def scanDir(directory, output, filetype='all', hashtype='all') :
 	global ProcessCount
 	global ErrorCount
 
@@ -44,54 +37,103 @@ def processDirectories(directory) :
 	path = pathlib.Path(directory)
 	files = path.rglob("*")
 	date = "{}-{}-{}".format(dt.today().month, dt.today().day, dt.today().year)
-	with open("HasherScan{}.csv".format(date), "w+") as output:
+	m = magic.Magic(mime=True)
+	with open("HasherScan{}.{}".format(date, output), "w+") as ofile:
 		for file in files:
 			if file.is_file():
-				result = hashFile(str(file), file)
-				form = 'Filename: {FileName},Filetype: {FileType}, Filepath: {FilePath}, Hashtype: {hashType} - {hexMD5}, SHAtype: {SHAtype} - {hexSHA}, size: {size}\n'.format(**result).replace('    ','')		
-				output.write(form)
-			
+				#Check file type and hashes.
+				ftype = m.from_file(str(file))
+				with open(str(file), 'rb') as fp:
+					fData = fp.read()
+				hash = hashlib.md5 ()
+				hash256 = hashlib.sha256 ()
+				hash.update(fData)
+				hash256.update(fData)
+				hexMD5 = hash.hexdigest().upper()
+				hexSHA = hash256.hexdigest ().upper()
+				#If a filetype is entered we check it.
+				run = True
+				if filetype != 'all' and hashtype != 'all':
+					if filetype in ftype and hashtype == hexMD5 or hashtype == hexSHA:
+						run = True
+						
+				elif hashtype != 'all':
+					if hashtype == hexMD5 or hashtype == hexSHA:
+						run = True
 
+				elif filetype != 'all':
+					if filetype in ftype:
+						run = True		
 
-#Grab the information for each file in a directory.			
-def hashFile(filePath, pathObj) :
-	#Any errors will be processed in the exception clause  
-	try:
-		fp = open(filePath , 'rb')
-		fData = fp.read()
-		fp.close()
-								
-		theFileStats = os.stat(filePath)
-		(mode, ino, dev, nlink, uid, gid, size, altime, mtime, ctime,) = os.stat(filePath)
-		hash = hashlib.md5 ()
-		hash256 = hashlib.sha256 ()
-		hash.update(fData)
-		hash256.update(fData)
-							
-		#Trying the magic library for cross-platform support
-		m = magic.Magic(mime=True)
-		ftype = m.from_file(filePath)
+				if run:
+					runThrough(str(file), file, ftype, hexMD5, hexSHA, ofile)
+		
+#where to handle hash logic 
+def runThrough(filePath, pathObj, filetype, md5, sha, ofile):
+	#Grab the information for each file in a directory.	
+	theFileStats = os.stat(filePath)
+	(mode, ino, dev, nlink, uid, gid, size, altime, mtime, ctime,) = os.stat(filePath)
+						
+	hHFile = {
+		'hashType': 'MD5',
+		'SHAtype': 'SHA256',
+		'hexMD5': md5,
+		'hexSHA': sha,
+		'size': size,
+		'FileName': pathObj.name,
+		'FilePath': filePath,
+		'FileType': filetype
+	}
 
-		hHFile = {
-			'hashType': 'MD5',
-			'SHAtype': 'SHA256',
-			'hexMD5': hash.hexdigest().upper(),
-			'hexSHA': hash256.hexdigest ().upper(),
-			'size': size,
-			'FileName': pathObj.name,
-			'FilePath': filePath,
-			'FileType': ftype
-		}
-		#pdb.set_trace()  
-		return hHFile					
-                                                 
-	except IOError:
-		#An exception occured when processing the file
-		print (pathObj.name + ' File Processing Error')
-				
-if __name__ == '__main__' :
-	#Grab our arguments. 
-	#Script is the name of our script
-	#Directory is the name of the directory to start traversal.
-	script, directory = argv
-	processDirectories(directory)
+	ofile.write('Filename: {FileName},Filetype: {FileType}, Filepath: {FilePath}, Hashtype: {hashType} - {hexMD5}, SHAtype: {SHAtype} - {hexSHA}, size: {size}'.format(**hHFile).replace('    ',''))
+
+def readOption(filePath, fileType = "all", hashType = "all"):
+	with open(filePath, "r") as fp:
+		#All our store is stored as csv anyways so separate on commas
+		for line in fp:
+			newLine = line.split(",")
+			#Unlike in the scanning portion, we are working with a list now.
+			#So we have to compare the indexes of a list with our filters.
+			if fileType == 'all' and hashType == 'all':
+				printer(newLine)
+			elif fileType != 'all' and hashType != 'all':
+				if fileType in newLine[1] and hashType in newLine[3] or hashType in newLine[4]:
+					printer(newLine)
+			elif fileType != 'all':
+				if fileType in newLine[1]:
+					printer(newLine)
+			elif hashType != 'all':
+				if hashType in newLine[3] or hashType in newLine[4]:
+					printer(newLine)
+					
+def printer(linearr):
+	for i, v in enumerate(linearr):
+		print(v.replace(' ', ''))
+		if i == len(linearr) - 1:
+			print("-" * 10)
+
+#We will likely need some error messages during testing.		
+def callError():
+	pass
+
+if __name__ == "__main__":
+	parser = argparse.ArgumentParser(description='Hasher 2.0 is a file stat program for mobile devices.')
+	group = parser.add_mutually_exclusive_group(required=True)
+	parser.add_argument('path', help="Path: The path files will be read or scanned from.")
+	group.add_argument('-r', action= "store_true", help="Read: Instead of scanning a folder it will read a folder.")
+	group.add_argument('-o', choices=["csv", "txt"], help="Output: Determines the type of output of the scan.")
+	parser.add_argument('--type', default = "all", help="Type: Will only scan files of a certain type.")
+	parser.add_argument('--hash', default = "all", help="Hash: Takes in a file that stores a list of hashes and scans matching files.")
+	#https://github.com/mac4n6/APOLLO/blob/master/apollo.py
+	#https://docs.python.org/3/library/argparse.html#argparse.ArgumentParser.add_argument
+	args = parser.parse_args()
+
+	global path
+	path = args.path
+
+	#Because r and o are in a group, they have to pick one.
+	if args.r:
+		readOption(path, args.type, str(args.hash))
+	#Scan
+	elif args.o:
+		scanDir(path, args.o, args.type, str(args.hash))
