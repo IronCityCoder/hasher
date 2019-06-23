@@ -107,9 +107,10 @@ def readOption(filePath, fileType = "all", hashType = "all"):
 					printer(newLine)
 					
 def printer(linearr):
-	for i in linearr:
-		print(i.replace(' ', ''))
-	print("-" * 10)
+	for i, v in enumerate(linearr):
+		print(v.replace(' ', ''))
+		if i == len(linearr) - 1:
+			print("-" * 10)
 
 #We will likely need some error messages during testing.		
 def callError():
@@ -132,9 +133,7 @@ if __name__ == "__main__":
 
 	#Because r and o are in a group, they have to pick one.
 	if args.r:
-		print("READING")
 		readOption(path, args.type, str(args.hash))
 	#Scan
 	elif args.o:
-		print("SCANNING")
 		scanDir(path, args.o, args.type, str(args.hash))
