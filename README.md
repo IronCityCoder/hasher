@@ -14,7 +14,7 @@ It also lists the file path and file type for applicable files.
 - Unpack in directory you want to run
 
 ### Running
-`hasher.py path [-r] [-o {csv,txt}] [--type {file type}] [--hash {md5 or sha}]`
+`./hasher.py path [-r] [-o {csv,txt}] [--type {file type}] [--hash {md5 or sha}]`
 
 - **Path** is the file path for either scanning a directory or reading a previous report.
 - **r** is a switch for reading from the path.
