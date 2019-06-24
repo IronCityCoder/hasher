@@ -3,6 +3,16 @@ hasher.py is a python script used for mobile device acquisition triage.
 It lists all files with their simple name, size, sha256 and md5 hashes.
 It also lists the file path and file type for applicable files.
 
+The newest updates include:
+- Filtering file types such as png or sqlite
+- Searching reports or directories for specific hashes
+- Reading in the data from previous reports
+
+Goals for hasher 2.1.0 will be:
+- Having the option for taking in a list of types or hashes.
+- A 'recent' log that will hold the locations of the last X reports for fast access.
+- Expanded testing suite.
+
 ### Installation
 
 #### Linux
