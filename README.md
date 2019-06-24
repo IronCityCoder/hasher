@@ -12,6 +12,7 @@ Goals for hasher 2.1.0 will be:
 - Having the option for taking in a list of types or hashes.
 - A 'recent' log that will hold the locations of the last X reports for fast access.
 - Expanded testing suite.
+- Remove all dependencies on os library
 
 ### Installation
 
