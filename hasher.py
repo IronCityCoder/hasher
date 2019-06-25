@@ -54,15 +54,15 @@ def scanDir(directory, output, filetype='all', hashtype='all') :
 				run = True
 				#Make sure our cases work
 				if filetype != 'all' and hashtype != 'all':
-					if not(filetype in ftype and hashtype == hexMD5 or hashtype == hexSHA):
+					if filetype not in ftype and hashtype not in(hexMD5, hexSHA):
 						run = False
 						
 				elif hashtype != 'all':
-					if not(hashtype == hexMD5 or hashtype == hexSHA):
+					if hashtype not in(hexMD5, hexSHA):
 						run = False
 
 				elif filetype != 'all':
-					if not(filetype in ftype):
+					if filetype not in ftype:
 						run = False		
 
 				if run:
