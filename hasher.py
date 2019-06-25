@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # import all needed modules
 import argparse
-import os
 import hashlib
 from sys import argv
 from datetime import datetime as dt
@@ -70,10 +69,11 @@ def scanDir(directory, output, filetype='all', hashtype='all') :
 		
 #where to handle hash logic 
 def runThrough(filePath, pathObj, filetype, md5, sha, ofile):
-	#Grab the information for each file in a directory.	
-	theFileStats = os.stat(filePath)
-	(mode, ino, dev, nlink, uid, gid, size, altime, mtime, ctime,) = os.stat(filePath)
-						
+	#Stats about the file are stored here in an object.
+	#For future versions we can have flags to grab specific information.
+	theFileStats = pathObj.stat()
+	
+	#Grab the information for each file in a directory.						
 	hHFile = {
 		'hashType': 'MD5',
 		'SHAtype': 'SHA256',
