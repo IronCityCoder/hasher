@@ -11,10 +11,11 @@ The newest updates include:
 ## Todo
 
 - Recognize single hash input or file that has list of hashes
- - Parse that list
+  - Parse that list
 - Store X most recent reports 
 - Add unit testing for main scanning
 - Verify hashes used are secure
+- Make a function for pulling path.stat() data out
  
 
 ### Installation
