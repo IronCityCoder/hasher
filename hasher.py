@@ -51,21 +51,30 @@ def scanDir(directory, output, filetype='all', hashtype='all') :
 				hexMD5 = hash.hexdigest().upper()
 				hexSHA = hash256.hexdigest ().upper()
 				#If a filetype is entered we check it.
-				run = True
-				if filetype != 'all' and hashtype != 'all':
-					if filetype in ftype and hashtype == hexMD5 or hashtype == hexSHA:
-						run = True
-						
-				elif hashtype != 'all':
-					if hashtype == hexMD5 or hashtype == hexSHA:
-						run = True
-
-				elif filetype != 'all':
-					if filetype in ftype:
-						run = True		
-
-				if run:
-					runThrough(str(file), file, ftype, hexMD5, hexSHA, ofile)
+				
+				#Test out this new implementation.
+				filebool = filetype in ftype
+				md5bool = hashtype == hexMD5
+				shabool = hashtype == hexSHA
+				fbool = filetype != 'all'
+				hashbool = hashtype != 'all'
+				if fbool and hashbool:
+					if filebool and md5bool or shabool:
+						pass
+					#Else we skip over this current interation.
+					else:
+						continue
+				elif hashbool:
+					if md5bool or shabool:
+						pass
+					else:
+						continue
+				elif fbool:
+					if filebool:
+						pass
+					else:
+						continue		
+				runThrough(str(file), file, ftype, hexMD5, hexSHA, ofile)
 		
 #where to handle hash logic 
 def runThrough(filePath, pathObj, filetype, md5, sha, ofile):
