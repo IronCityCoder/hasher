@@ -88,24 +88,32 @@ def runThrough(filePath, pathObj, filetype, md5, sha, ofile):
 	ofile.write('Filename: {FileName},Filetype: {FileType}, Filepath: {FilePath}, Hashtype: {hashType} - {hexMD5}, SHAtype: {SHAtype} - {hexSHA}, size: {size}'.format(**hHFile).replace('    ',''))
 
 def readOption(filePath, fileType = "all", hashType = "all"):
-	with open(filePath, "r") as fp:
-		#All our store is stored as csv anyways so separate on commas
-		for line in fp:
-			newLine = line.split(",")
-			#Unlike in the scanning portion, we are working with a list now.
-			#So we have to compare the indexes of a list with our filters.
-			if fileType == 'all' and hashType == 'all':
-				printer(newLine)
-			elif fileType != 'all' and hashType != 'all':
-				if fileType in newLine[1] and hashType in newLine[3] or hashType in newLine[4]:
-					printer(newLine)
-			elif fileType != 'all':
-				if fileType in newLine[1]:
-					printer(newLine)
-			elif hashType != 'all':
-				if hashType in newLine[3] or hashType in newLine[4]:
-					printer(newLine)
-					
+	path = pathlib.Path(directory)
+	if path.is_file():
+		with open(filePath, "r") as fp:
+			try:
+				#All our store is stored as csv anyways so separate on commas
+				for line in fp:
+					newLine = line.split(",")
+					#Unlike in the scanning portion, we are working with a list now.
+					#So we have to compare the indexes of a list with our filters.
+					if fileType == 'all' and hashType == 'all':
+						printer(newLine)
+					elif fileType != 'all' and hashType != 'all':
+						if fileType in newLine[1] and hashType in newLine[3] or hashType in newLine[4]:
+							printer(newLine)
+					elif fileType != 'all':
+						if fileType in newLine[1]:
+							printer(newLine)
+					elif hashType != 'all':
+						if hashType in newLine[3] or hashType in newLine[4]:
+							printer(newLine)
+			except:
+				#Print errors out when reading in data.
+				print("Error reading the file: {}".format(filePath))
+	else:
+		print("{} is not a file.".format(filePath))
+
 def printer(linearr):
 	for i, v in enumerate(linearr):
 		print(v.replace(' ', ''))
