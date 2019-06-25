@@ -52,17 +52,18 @@ def scanDir(directory, output, filetype='all', hashtype='all') :
 				hexSHA = hash256.hexdigest ().upper()
 				#If a filetype is entered we check it.
 				run = True
+				#Make sure our cases work
 				if filetype != 'all' and hashtype != 'all':
-					if filetype in ftype and hashtype == hexMD5 or hashtype == hexSHA:
-						run = True
+					if not(filetype in ftype and hashtype == hexMD5 or hashtype == hexSHA):
+						run = False
 						
 				elif hashtype != 'all':
-					if hashtype == hexMD5 or hashtype == hexSHA:
-						run = True
+					if not(hashtype == hexMD5 or hashtype == hexSHA):
+						run = False
 
 				elif filetype != 'all':
-					if filetype in ftype:
-						run = True		
+					if not(filetype in ftype):
+						run = False		
 
 				if run:
 					runThrough(str(file), file, ftype, hexMD5, hexSHA, ofile)
