@@ -88,7 +88,7 @@ def runThrough(filePath, pathObj, filetype, md5, sha, ofile):
 	ofile.write('Filename: {FileName},Filetype: {FileType}, Filepath: {FilePath}, Hashtype: {hashType} - {hexMD5}, SHAtype: {SHAtype} - {hexSHA}, size: {size}'.format(**hHFile).replace('    ',''))
 
 def readOption(filePath, fileType = "all", hashType = "all"):
-	path = pathlib.Path(directory)
+	path = pathlib.Path(filePath)
 	if path.is_file():
 		with open(filePath, "r") as fp:
 			try:
