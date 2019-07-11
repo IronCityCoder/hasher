@@ -80,7 +80,7 @@ def runThrough(filePath, pathObj, filetype, md5, sha, ofile):
 		'SHAtype': 'SHA256',
 		'hexMD5': md5,
 		'hexSHA': sha,
-		'size': size,
+		'size': theFileStats.st_size,
 		'FileName': pathObj.name,
 		'FilePath': filePath,
 		'FileType': filetype
