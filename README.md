@@ -1,4 +1,4 @@
-# hasher 2.0.1
+# hasher
 [![version](https://img.shields.io/badge/Version-2.0.1-blue.svg)](https://github.com/IronCityCoder/hasher)
 [![stability](https://img.shields.io/badge/stability-experimental-orange.svg)](https://github.com/IronCityCoder/hasher)
 
