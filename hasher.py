@@ -27,7 +27,7 @@ arg.py path [-h] [-r] [-o {csv,txt}] [--type TYPE] [--hash HASH]
 
 '''
 #This function walks through the given directory.
-def scanDir(directory, output, filetype='all', hashtype='all') :
+def scanDir(directory, output, fileType='all', hashType='all') :
 	global ProcessCount
 	global ErrorCount
 
@@ -52,29 +52,49 @@ def scanDir(directory, output, filetype='all', hashtype='all') :
 				hexSHA = hash256.hexdigest ().upper()
 				#If a filetype is entered we check it.
 				
+				hashStack = [hashType]
+				allHash = True
+				acceptableTypes = [".txt", ".csv"]
+
+				#We go through our hash list and put hashes in a list.
+				if any(x in hashType for x in acceptableTypes):
+					try:
+						with open(hashType, "r") as hs:
+							hashStack = []
+							allHash = False
+							#Strip out empty lines.
+							lines = (line.rstrip() for line in hs)
+							lines = (line for line in lines if line)
+							for line in lines:
+								hashStack.append(str(line))
+					except:
+						#Use callError to print to error log.
+						print("Error reading hash file.")
+
 				#Test out this new implementation.
-				filebool = filetype in ftype
-				hashbool = hashtype in (hexMD5, hexSHA)
-				fbool = filetype != 'all'
-				hbool = hashtype != 'all'
-				if fbool and hbool:
-					#We skip over this current interation.
-					if not filebool and not hashbool:
-						continue
-				elif hbool:
-					if not hashbool:
-						continue
-				elif fbool:
-					if not filebool:
-						continue
-						
-				runThrough(str(file), file, ftype, hexMD5, hexSHA, ofile)
+				for i, v in enumerate(hashStack):
+					filebool = fileType in ftype #i.e is png in ftype?
+					hashbool = v in [hexMD5, hexSHA] #do hashes match?
+
+					fbool = fileType != 'all' #file filtering on or off?
+
+					if fbool and not allHash:
+						if not (filebool and hashbool):
+							continue
+					elif fbool:
+						if not filebool:
+							continue
+					elif not(allHash):
+						if not hashbool:
+							continue
+					#If we pass filters we will format file info below.
+					runThrough(str(file), file, ftype, hexMD5, hexSHA, ofile)
 		
 #where to handle hash logic 
 def runThrough(filePath, pathObj, filetype, md5, sha, ofile):
 	#Stats about the file are stored here in an object.
 	#For future versions we can have flags to grab specific information.
-	theFileStats = pathObj.stat()
+	fileStats = pathObj.stat()
 	
 	#Grab the information for each file in a directory.						
 	hHFile = {
@@ -82,13 +102,13 @@ def runThrough(filePath, pathObj, filetype, md5, sha, ofile):
 		'SHAtype': 'SHA256',
 		'hexMD5': md5,
 		'hexSHA': sha,
-		'size': size,
+		'size': fileStats.st_size,
 		'FileName': pathObj.name,
 		'FilePath': filePath,
 		'FileType': filetype
 	}
 
-	ofile.write('Filename: {FileName},Filetype: {FileType}, Filepath: {FilePath}, Hashtype: {hashType} - {hexMD5}, SHAtype: {SHAtype} - {hexSHA}, size: {size}'.format(**hHFile).replace('    ',''))
+	ofile.write('Filename: {FileName},Filetype: {FileType}, Filepath: {FilePath}, Hashtype: {hashType} - {hexMD5}, SHAtype: {SHAtype} - {hexSHA}, size: {size}\n'.format(**hHFile).replace('    ',''))
 
 def readOption(filePath, fileType = "all", hashType = "all"):
 	path = pathlib.Path(filePath)
@@ -100,17 +120,40 @@ def readOption(filePath, fileType = "all", hashType = "all"):
 					newLine = line.split(",")
 					#Unlike in the scanning portion, we are working with a list now.
 					#So we have to compare the indexes of a list with our filters.
-					if fileType == 'all' and hashType == 'all':
+					#Set up variables for easier logic.
+					newType = newLine[1]
+					hashStack = [hashType]
+					allHash = True
+					acceptableTypes = [".txt", ".csv"]
+					if any(x in hashType for x in acceptableTypes):
+						try:
+							with open(hashType, "r") as hs:
+								hashStack = []
+								allHash = False
+								#Strip out empty lines.
+								lines = (line.rstrip() for line in hs)
+								lines = (line for line in lines if line)
+								for line in lines:
+									hashStack.append(str(line))
+						except:
+							#Use callError to print to error log.
+							print("Error reading hash file.")
+					#We go over our list of hashes
+					#and check that the filetype and hashes match up
+					#if allHash is true, we don't even need to check hashes
+				
+					for i, v in enumerate(hashStack):
+						check = v in newLine[3], newLine[4]
+						if fileType != 'all' and not allHash:
+							if not(fileType in newType and check):
+								continue
+						elif fileType != 'all':
+							if not(fileType in newType):
+								continue
+						elif not allHash:
+							if not check:
+								continue
 						printer(newLine)
-					elif fileType != 'all' and hashType != 'all':
-						if fileType in newLine[1] and hashType in newLine[3] or hashType in newLine[4]:
-							printer(newLine)
-					elif fileType != 'all':
-						if fileType in newLine[1]:
-							printer(newLine)
-					elif hashType != 'all':
-						if hashType in newLine[3] or hashType in newLine[4]:
-							printer(newLine)
 			except:
 				#Print errors out when reading in data.
 				print("Error reading the file: {}".format(filePath))
@@ -119,8 +162,8 @@ def readOption(filePath, fileType = "all", hashType = "all"):
 
 def printer(linearr):
 	for i, v in enumerate(linearr):
-		print(v.replace(' ', ''))
-		if i == len(linearr) - 1:
+		print(v.rstrip().replace(' ', ''))
+		if i == len(linearr) - 1:		
 			print("-" * 10)
 
 #We will likely need some error messages during testing.		

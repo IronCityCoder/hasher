@@ -1,21 +1,19 @@
 # hasher 2.0.1
+[![version](https://img.shields.io/badge/Version-2.0.1-blue.svg)](https://github.com/IronCityCoder/hasher)
+
 hasher.py is a python script used for mobile device acquisition triage. 
 It lists all files with their simple name, size, sha256 and md5 hashes.
 It also lists the file path and file type for applicable files.
 
-The newest updates include:
-- Filtering file types such as png or sqlite
-- Searching reports or directories for specific hashes
-- Reading in the data from previous reports
+### 2.0.1 updates include:
+- Able to pass in a .txt or .csv new-line separated list to the --hash flag
 
 ## Todo
 
-- Recognize single hash input or file that has list of hashes
-  - Parse that list
+- Update --hash to handle comma separated values as well as new line
 - Store X most recent reports 
 - Add unit testing for main scanning
-- Verify hashes used are secure
-- Make a function for pulling path.stat() data out
+- Put hash filtering and file filtering in their own functions
  
 
 ### Installation
@@ -24,10 +22,12 @@ The newest updates include:
 - Open up command line.
  - `git clone https://github.com/IronCityCoder/hasher.git`
  - Move folder to desired directory with `mv` command.
+- `pip3 install pathlib`
 
 #### Windows
 - Download ZIP
 - Unpack in directory you want to run
+- `pip3 install pathlib`
 
 ### Running
 `./hasher.py path [-r] [-o {csv,txt}] [--type {file type}] [--hash {md5 or sha}]`
