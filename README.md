@@ -1,4 +1,7 @@
-# hasher 2.0.0
+# hasher
+[![version](https://img.shields.io/badge/Version-2.0.0-blue.svg)](https://github.com/IronCityCoder/hasher)
+[![stability](https://img.shields.io/badge/stability-stable-green.svg)](https://github.com/IronCityCoder/hasher)
+
 hasher.py is a python script used for mobile device acquisition triage. 
 It lists all files with their simple name, size, sha256 and md5 hashes.
 It also lists the file path and file type for applicable files.
