@@ -61,17 +61,23 @@ def report_formatter(output):
 # Gets the hashes of a file.
 def hashing(file):
 	with open(str(file), "rb") as read_file:
-		file_data = read_file.read() # The bits we will use for hashing.
+		# Will need to handle what we do with files that are in the GB range.
+		# The backup tar errors out.
+		try:
+			file_data = read_file.read() # The bits we will use for hashing.
 
-		md5_hash = hashlib.md5()
-		md5_hash.update(file_data)
-		md5_hash = md5_hash.hexdigest().upper()
+			md5_hash = hashlib.md5()
+			md5_hash.update(file_data)
+			md5_hash = md5_hash.hexdigest().upper()
 
-		sha_hash = hashlib.sha256()
-		sha_hash.update(file_data)
-		sha_hash = sha_hash.hexdigest ().upper()
+			sha_hash = hashlib.sha256()
+			sha_hash.update(file_data)
+			sha_hash = sha_hash.hexdigest ().upper()
+			return md5_hash, sha_hash
+		except:
+			call_error(f"{str(file)} is too large! Size: {file.stat().st_size}")
 	
-	return md5_hash, sha_hash
+
 
 # Determine if a filter we want is in the file.
 def logic_tree(stack, info):
@@ -94,37 +100,48 @@ def combinations(all_hashes, all_files, type_bool, hash_bool):
 # Walks through the directory and collects info about each file.
 def scan_dir(directory, file_type = "all", hash_type = "all"):
 	path = pathlib.Path(directory)
-	files = path.rglob("*")
-	files = [file for file in files if file.is_file()]
-	file_name = report_formatter(output_type)
+	# Narrow files scanned
+	if file_type == "all":
+		files = path.rglob("*")
+	else:
+		files = path.rglob(f"*.{file_type}")
+	#files = [file for file in files if file.is_file()]
+	file_name = report_formatter("csv")
 	
-	# Set up the magic-byte object for determing file type
+	# Set up the mls -lls sagic-byte object for determing file type
 	m = magic.Magic(mime=True) # Set mime to False for different output
 	
 	with open(file_name, "w+") as output_file:
 		for file in files:
-			item_type = m.from_file(str(file))
-			md5_hash, sha_hash = hashing(file)
-			
-			# List of what the user wants to filer.
-			# If nothing is supplied, should be "all".
-			filter_hashes = filter_args(hash_type)
-			filter_extensions = filter_args(file_type)
-			
-			# Booleans to determine what we scan
-			all_hashes, all_files = len(filter_hashes) == 1, len(filter_extensions) == 1
-			hash_bool = logic_tree(filter_hashes, [md5_hash, sha_hash])
-			type_bool = logic_tree(filter_extensions, [item_type])
-			# Check combinations of booleans
-			if combinations(all_hashes, all_files, type_bool, hash_bool):
+			try:
+				if file.is_file():
+					item_type = m.from_file(str(file))
+					try:
+						md5_hash, sha_hash = hashing(file)
+					except:
+						call_error(f"{str(file)} is likely too big, so the hash did not return.")
+						continue
+					# List of what the user wants to filer.
+					# If nothing is supplied, should be "all".
+					filter_hashes = filter_args(hash_type)
+					filter_extensions = filter_args(file_type)
+					
+					# Booleans to determine what we scan
+					all_hashes, all_files = len(filter_hashes) == 1, len(filter_extensions) == 1
+					hash_bool = logic_tree(filter_hashes, [md5_hash, sha_hash])
+					type_bool = logic_tree(filter_extensions, [item_type])
+					# Check combinations of booleans
+					if combinations(all_hashes, all_files, type_bool, hash_bool):
 
-				# We either have the types being "all" or they match filters
-				# Clean up the args being passed
-				file_stats = file.stat()
-				
-				# Modify output based on output_type
-				output = f"Filename: {file.name}, Filetype: {item_type}, Filepath: {str(file)}, Hashtype: MD5 - {md5_hash}, SHAtype: SHA256 - {sha_hash}, size: {file_stats.st_size}\n".replace('    ','')
-				output_file.write(output)
+						# We either have the types being "all" or they match filters
+						# Clean up the args being passed
+						file_stats = file.stat()
+						
+						# Modify output based on output_type
+						output = f"Filename: {file.name}, Filetype: {item_type}, Filepath: {str(file)}, Hashtype: MD5 - {md5_hash}, SHAtype: SHA256 - {sha_hash}, size: {file_stats.st_size}\n".replace('    ','')
+						output_file.write(output)
+			except:
+				call_error(f"{str(file)} throws a permission error!")
 
 # Will go through a report and print out information.			
 def read_report(path, file_type = "all", hash_type = "all"):
