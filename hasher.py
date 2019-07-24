@@ -28,7 +28,7 @@ def open_filter_file(file_name):
 		else:
 			# Split by new line 
 			lines = (line.rstrip() for line in file)
-			lines = (line for line in lines if line)ls
+			lines = (line for line in lines if line)
 
 		for line in lines:
 			stack.append(line)
