@@ -39,4 +39,4 @@ It also lists the file path and file type for applicable files.
 
 ### Testing
 
-Unit testing is done through pytest in the included `test_hasher.py` file. Current build passes 6/6 tests on small directories. 
+Current build passes 6/6 tests for -r mode. Tests could be added for the scanning mode.
