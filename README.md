@@ -1,5 +1,5 @@
 # hasher
-[![version](https://img.shields.io/badge/Version-2.0.1-blue.svg)](https://github.com/IronCityCoder/hasher)
+[![version](https://img.shields.io/badge/Version-2.0.2-blue.svg)](https://github.com/IronCityCoder/hasher)
 [![stability](https://img.shields.io/badge/stability-stable-green.svg)](https://github.com/IronCityCoder/hasher)
 
 hasher.py is a python script used for mobile device acquisition triage. 
